@@ -138,6 +138,12 @@
         );
       });
     }
+    addToCart() {
+      const thisProduct = this;
+
+      const productSummary = thisProduct.prepareCartProduct();
+      app.cart.add(productSummary);
+    }
     initOrderForm() {
       const thisProduct = this;
       thisProduct.form.addEventListener('submit', function (event) {
@@ -154,6 +160,7 @@
       thisProduct.cartButton.addEventListener('click', function (event) {
         event.preventDefault();
         thisProduct.processOrder();
+        thisProduct.addToCart();
       });
     }
 
@@ -206,6 +213,7 @@
         }
       }
       // multiply price by ammount
+      thisProduct.priceSingle = price;
       price *= thisProduct.amountWidget.value;
 
       // update calculated price in the HTML
@@ -217,6 +225,19 @@
       thisProduct.amountWidgetElem.addEventListener('updated', function () {
         thisProduct.processOrder();
       });
+    }
+    prepareCartProduct() {
+      const thisProduct = this;
+      const productSummary = {};
+      productSummary.id = thisProduct.id;
+      productSummary.name = thisProduct.data.name;
+      productSummary.amount = thisProduct.amountWidget.value;
+      productSummary.priceSingle = thisProduct.priceSingle;
+      productSummary.price =
+        thisProduct.priceSingle * thisProduct.amountWidget.value;
+      productSummary.params = {};
+
+      return productSummary;
     }
   }
 
@@ -294,7 +315,6 @@
       thisCart.products = [];
       thisCart.getElements(element);
       thisCart.initActions();
-      console.log('new Cart: ', thisCart);
     }
     getElements(element) {
       const thisCart = this;
@@ -311,6 +331,10 @@
 
         thisCart.dom.wrapper.classList.toggle(classNames.cart.wrapperActive);
       });
+    }
+    add(menuProduct) {
+      //const thisCart = this;
+      console.log('adding product ', menuProduct);
     }
   }
 
