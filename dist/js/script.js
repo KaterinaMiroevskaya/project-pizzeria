@@ -44,8 +44,8 @@
   const settings = {
     amountWidget: {
       defaultValue: 1,
-      defaultMin: 1,
-      defaultMax: 9,
+      defaultMin: 0,
+      defaultMax: 10,
     },
   };
 
@@ -63,6 +63,7 @@
       thisProduct.renderInMenu();
       thisProduct.getElements();
       thisProduct.initAccordion();
+      thisProduct.initAmountWidget();
       thisProduct.initOrderForm();
       thisProduct.processOrder();
     }
@@ -101,6 +102,9 @@
       );
       thisProduct.imageWrapper = thisProduct.element.querySelector(
         select.menuProduct.imageWrapper
+      );
+      thisProduct.amountWidgetElem = thisProduct.element.querySelector(
+        select.menuProduct.amountWidget
       );
     }
     initAccordion() {
@@ -146,6 +150,7 @@
         thisProduct.processOrder();
       });
     }
+
     processOrder() {
       const thisProduct = this;
 
@@ -155,7 +160,7 @@
 
       // set price to default price
       let price = thisProduct.data.price;
-
+      console.log('thisProduct.data.price: ', thisProduct.data.price);
       // for every category (param)...
       for (let paramId in thisProduct.data.params) {
         // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
@@ -188,7 +193,7 @@
           const optionImage = thisProduct.imageWrapper.querySelector(
             `.${paramId}-${optionId}`
           );
-          console.log(optionImage);
+          // console.log(optionImage);
           if (optionImage != null) {
             if (optionSelected) {
               optionImage.classList.add(classNames.menuProduct.imageVisible);
@@ -198,9 +203,91 @@
           }
         }
       }
+      // multiply price by ammount
+      price *= thisProduct.amountWidget.value;
+      console.log(
+        'thisProduct.amountWidget.value: ',
+        thisProduct.amountWidget.value
+      );
 
       // update calculated price in the HTML
       thisProduct.priceElem.innerHTML = price;
+    }
+    initAmountWidget() {
+      const thisProduct = this;
+      thisProduct.amountWidget = new AmountWidget(thisProduct.amountWidgetElem);
+      thisProduct.amountWidgetElem.addEventListener('updated', function () {
+        thisProduct.processOrder();
+      });
+    }
+  }
+
+  class AmountWidget {
+    constructor(element) {
+      const thisWidget = this;
+      // console.log('AmountWidget: ', thisWidget);
+      // console.log('constructor arguments: ', element);
+      thisWidget.getElements(element);
+
+      thisWidget.setValue(thisWidget.input.value);
+      thisWidget.initActions();
+    }
+    getElements(element) {
+      const thisWidget = this;
+
+      thisWidget.element = element;
+      thisWidget.input = thisWidget.element.querySelector(
+        select.widgets.amount.input
+      );
+      thisWidget.linkDecrease = thisWidget.element.querySelector(
+        select.widgets.amount.linkDecrease
+      );
+      thisWidget.linkIncrease = thisWidget.element.querySelector(
+        select.widgets.amount.linkIncrease
+      );
+    }
+    setValue(value) {
+      const thisWidget = this;
+      thisWidget.value = settings.amountWidget.defaultValue;
+      const newValue = parseInt(value);
+      // TODO: Add validation
+      if (
+        thisWidget.value !== newValue &&
+        !isNaN(newValue) &&
+        newValue <= settings.amountWidget.defaultMax &&
+        newValue >= settings.amountWidget.defaultMin
+      ) {
+        thisWidget.value = newValue;
+
+        thisWidget.announce();
+      }
+      console.log('thisWidget.value: ', thisWidget.value);
+      thisWidget.input.value = thisWidget.value;
+    }
+    initActions() {
+      const thisWidget = this;
+
+      thisWidget.input.addEventListener('change', function (event) {
+        event.preventDefault();
+
+        thisWidget.setValue(thisWidget.input.value);
+      });
+
+      thisWidget.linkDecrease.addEventListener('click', function (event) {
+        event.preventDefault();
+        const value = thisWidget.value - 1;
+        thisWidget.setValue(value);
+      });
+      thisWidget.linkIncrease.addEventListener('click', function (event) {
+        event.preventDefault();
+        const value = thisWidget.value + 1;
+        thisWidget.setValue(value);
+      });
+    }
+    announce() {
+      const thisWidget = this;
+      const event = new Event('updated');
+      thisWidget.element.dispatchEvent(event);
     }
   }
 
