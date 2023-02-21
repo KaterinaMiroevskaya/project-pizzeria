@@ -160,7 +160,7 @@
 
       // set price to default price
       let price = thisProduct.data.price;
-      console.log('thisProduct.data.price: ', thisProduct.data.price);
+      // console.log('thisProduct.data.price: ', thisProduct.data.price);
       // for every category (param)...
       for (let paramId in thisProduct.data.params) {
         // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
@@ -225,6 +225,7 @@
   class AmountWidget {
     constructor(element) {
       const thisWidget = this;
+      thisWidget.value = settings.amountWidget.defaultValue;
       // console.log('AmountWidget: ', thisWidget);
       // console.log('constructor arguments: ', element);
       thisWidget.getElements(element);
@@ -248,7 +249,7 @@
     }
     setValue(value) {
       const thisWidget = this;
-      thisWidget.value = settings.amountWidget.defaultValue;
+
       const newValue = parseInt(value);
       // TODO: Add validation
       if (
