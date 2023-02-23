@@ -6,6 +6,7 @@
   const select = {
     templateOf: {
       menuProduct: '#template-menu-product',
+      cartProduct: '#template-cart-product',
     },
     containerOf: {
       menu: '#product-list',
@@ -59,6 +60,9 @@
     menuProduct: Handlebars.compile(
       document.querySelector(select.templateOf.menuProduct).innerHTML
     ),
+    // cartProduct: Handlebars.compile(
+    //   document.querySelector(select.templateOf.cartProduct).innerHTML
+    // ),
   };
 
   class Product {
@@ -72,6 +76,7 @@
       thisProduct.initAmountWidget();
       thisProduct.initOrderForm();
       thisProduct.processOrder();
+      thisProduct.prepareCartProductParams();
     }
     renderInMenu() {
       const thisProduct = this;
@@ -226,6 +231,36 @@
         thisProduct.processOrder();
       });
     }
+    prepareCartProductParams() {
+      const thisProduct = this;
+      const formData = utils.serializeFormToObject(thisProduct.form);
+      const CartProductParams = {};
+
+      // for every category (param)...
+      for (let paramId in thisProduct.data.params) {
+        // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
+        const param = thisProduct.data.params[paramId];
+        CartProductParams[paramId] = {
+          label: param.label,
+          options: {},
+        };
+        // for every option in this category
+        for (let optionId in param.options) {
+          // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
+          // eslint-disable-next-line no-unused-vars
+          const option = param.options[optionId];
+          const optionSelected =
+            formData[paramId] && formData[paramId].includes(optionId);
+
+          // check if there is param with a name of paramId in formData and if it includes optionId
+          if (optionSelected) {
+            CartProductParams[paramId].options[optionId] =
+              param.options[optionId].label;
+          }
+        }
+      }
+      return CartProductParams;
+    }
     prepareCartProduct() {
       const thisProduct = this;
       const productSummary = {};
@@ -235,7 +270,7 @@
       productSummary.priceSingle = thisProduct.priceSingle;
       productSummary.price =
         thisProduct.priceSingle * thisProduct.amountWidget.value;
-      productSummary.params = {};
+      productSummary.params = thisProduct.prepareCartProductParams();
 
       return productSummary;
     }
@@ -323,6 +358,7 @@
       thisCart.dom.toggleTrigger = thisCart.dom.wrapper.querySelector(
         select.cart.toggleTrigger
       );
+      thisCart.dom.productList;
     }
     initActions() {
       const thisCart = this;
